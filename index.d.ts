@@ -135,6 +135,10 @@ declare module 'react-native-wechat-lib' {
   export function subscribeMessage(
     message: SubscribeMessageMetadata,
   ): Promise<{ errCode?: number; errStr?: string }>;
+  export function openCustomerServiceChat(
+    corpId: string,
+    url: string,
+  ): Promise<{ errCode?: number; errStr?: string }>;
   export interface PaymentLoad {
     partnerId: string;
     prepayId: string;

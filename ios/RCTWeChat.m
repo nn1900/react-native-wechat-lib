@@ -35,7 +35,7 @@ RCT_EXPORT_MODULE()
 {
     NSString * aURLString =  [aNotification userInfo][@"url"];
     NSURL * aURL = [NSURL URLWithString:aURLString];
-    
+
     if ([WXApi handleOpenURL:aURL delegate:self])
     {
         return YES;
@@ -67,7 +67,7 @@ RCT_EXPORT_MODULE()
     CGFloat compression = 1;
     NSData *data = UIImageJPEGRepresentation(image, compression);
     if (data.length < maxLength) return data;
-    
+
     CGFloat max = 1;
     CGFloat min = 0;
     for (int i = 0; i < 6; ++i) {
@@ -83,7 +83,7 @@ RCT_EXPORT_MODULE()
     }
     UIImage *resultImage = [UIImage imageWithData:data];
     if (data.length < maxLength) return data;
-    
+
     // Compress by size
     NSUInteger lastDataLength = 0;
     while (data.length > maxLength && data.length != lastDataLength) {
@@ -97,11 +97,11 @@ RCT_EXPORT_MODULE()
         UIGraphicsEndImageContext();
         data = UIImageJPEGRepresentation(resultImage, compression);
     }
-    
+
     if (data.length > maxLength) {
         return [self compressImage:resultImage toByte:maxLength];
     }
-    
+
     return data;
 }
 
@@ -177,6 +177,22 @@ RCT_EXPORT_METHOD(sendAuthRequest:(NSString *)scope
     [WXApi sendAuthReq:req viewController:rootViewController delegate:self completion:completion];
 }
 
+RCT_EXPORT_METHOD(openCustomerServiceChat:(NSString *)corpId
+                  :(NSString *)url
+                  :(RCTResponseSenderBlock)callback)
+{
+    WXOpenCustomerServiceReq *req = [[WXOpenCustomerServiceReq alloc] init];
+    req.corpid = corpId;
+    req.url = url;
+    void ( ^ completion )( BOOL );
+    completion = ^( BOOL success )
+    {
+        callback(@[success ? [NSNull null] : INVOKE_FAILED]);
+        return;
+    };
+    [WXApi sendReq:req completion:completion];
+}
+
 RCT_EXPORT_METHOD(sendSuccessResponse:(RCTResponseSenderBlock)callback)
 {
     BaseResp* resp = [[BaseResp alloc] init];
@@ -250,7 +266,7 @@ RCT_EXPORT_METHOD(chooseInvoice:(NSDictionary *)data
     req.nonceStr = data[@"nonceStr"];
     req.cardSign = data[@"cardSign"];
     req.signType = data[@"signType"];
-    
+
     void ( ^ completion )( BOOL );
     completion = ^( BOOL success )
     {
@@ -269,11 +285,11 @@ RCT_EXPORT_METHOD(shareFile:(NSDictionary *)data
     file.fileExtension = data[@"ext"];
     NSData *fileData = [NSData dataWithContentsOfURL:[NSURL URLWithString: url]];
     file.fileData = fileData;
-    
+
     WXMediaMessage *message = [WXMediaMessage message];
     message.title = data[@"title"];
     message.mediaObject = file;
-    
+
     SendMessageToWXReq *req = [[SendMessageToWXReq alloc] init];
     req.bText = NO;
     req.message = message;
@@ -302,7 +318,7 @@ RCT_EXPORT_METHOD(shareImage:(NSDictionary *)data
         callback([NSArray arrayWithObject:@"shareImage: ImageUrl value, Could not find file suffix."]);
         return;
     }
-    
+
     // 根据路径下载图片
     UIImage *image = [self getImageFromURL:imageUrl];
     // 从 UIImage 获取图片数据
@@ -310,14 +326,14 @@ RCT_EXPORT_METHOD(shareImage:(NSDictionary *)data
     // 用图片数据构建 WXImageObject 对象
     WXImageObject *imageObject = [WXImageObject object];
     imageObject.imageData = imageData;
-    
+
     WXMediaMessage *message = [WXMediaMessage message];
     // 利用原图压缩出缩略图，确保缩略图大小不大于32KB
     message.thumbData = [self compressImage: image toByte:32678];
     message.mediaObject = imageObject;
     message.title = data[@"title"];
     message.description = data[@"description"];
-    
+
     SendMessageToWXReq *req = [[SendMessageToWXReq alloc] init];
     req.bText = NO;
     req.message = message;
@@ -347,7 +363,7 @@ RCT_EXPORT_METHOD(shareLocalImage:(NSDictionary *)data
         callback([NSArray arrayWithObject:@"shareLocalImage: ImageUrl value, Could not find file suffix."]);
         return;
     }
-    
+
     // 根据路径下载图片
     UIImage *image = [UIImage imageWithContentsOfFile:imageUrl];
     // 从 UIImage 获取图片数据
@@ -355,14 +371,14 @@ RCT_EXPORT_METHOD(shareLocalImage:(NSDictionary *)data
     // 用图片数据构建 WXImageObject 对象
     WXImageObject *imageObject = [WXImageObject object];
     imageObject.imageData = imageData;
-    
+
     WXMediaMessage *message = [WXMediaMessage message];
     // 利用原图压缩出缩略图，确保缩略图大小不大于32KB
     message.thumbData = [self compressImage: image toByte:32678];
     message.mediaObject = imageObject;
     message.title = data[@"title"];
     message.description = data[@"description"];
-    
+
     SendMessageToWXReq *req = [[SendMessageToWXReq alloc] init];
     req.bText = NO;
     req.message = message;
@@ -386,7 +402,7 @@ RCT_EXPORT_METHOD(shareMusic:(NSDictionary *)data
     musicObject.musicLowBandUrl = data[@"musicLowBandUrl"];
     musicObject.musicDataUrl = data[@"musicDataUrl"];
     musicObject.musicLowBandDataUrl = data[@"musicLowBandDataUrl"];
-    
+
     WXMediaMessage *message = [WXMediaMessage message];
     message.title = data[@"title"];
     message.description = data[@"description"];
@@ -587,7 +603,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
     if([resp isKindOfClass:[SendMessageToWXResp class]])
     {
         SendMessageToWXResp *r = (SendMessageToWXResp *)resp;
-        
+
         NSMutableDictionary *body = @{@"errCode":@(r.errCode)}.mutableCopy;
         body[@"errStr"] = r.errStr;
         body[@"lang"] = r.lang;
@@ -602,7 +618,7 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
         body[@"lang"] = r.lang;
         body[@"country"] =r.country;
         body[@"type"] = @"SendAuth.Resp";
-        
+
         if (resp.errCode == WXSuccess) {
             if (self.appId && r) {
                 // ios第一次获取不到appid会卡死，加个判断OK
@@ -639,6 +655,13 @@ RCT_EXPORT_METHOD(pay:(NSDictionary *)data
         }
         body[@"cards"] = arr;
         body[@"type"] = @"WXChooseInvoiceResp.Resp";
+        [self.bridge.eventDispatcher sendDeviceEventWithName:RCTWXEventName body:body];
+    } else if ([resp isKindOfClass:[WXOpenCustomerServiceResp class]]) {
+        WXOpenCustomerServiceResp *r = (WXOpenCustomerServiceResp *)resp;
+        NSMutableDictionary *body = @{@"errCode":@(r.errCode)}.mutableCopy;
+        body[@"errStr"] = r.errStr;
+        body[@"extMsg"] = r.extMsg;
+        body[@"type"] = @"WXOpenCustomerService.Resp";
         [self.bridge.eventDispatcher sendDeviceEventWithName:RCTWXEventName body:body];
     }
 }

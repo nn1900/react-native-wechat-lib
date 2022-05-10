@@ -161,6 +161,8 @@ const nativeSubscribeMessage = wrapApi(WeChat.subscribeMessage);
 const nativeChooseInvoice = wrapApi(WeChat.chooseInvoice);
 const nativeShareFile = wrapApi(WeChat.shareFile);
 
+const nativeOpenCustomerServiceChat = wrapApi(WeChat.openCustomerServiceChat);
+
 /**
  * @method sendAuthRequest
  * @param {Array} scopes - the scopes for authentication.
@@ -170,6 +172,19 @@ export function sendAuthRequest(scopes, state) {
   return new Promise((resolve, reject) => {
     WeChat.sendAuthRequest(scopes, state, () => {});
     emitter.once('SendAuth.Resp', (resp) => {
+      if (resp.errCode === 0) {
+        resolve(resp);
+      } else {
+        reject(new WechatError(resp));
+      }
+    });
+  });
+}
+
+export function openCustomerServiceChat(corpId, url) {
+  return new Promise((resolve, reject) => {
+    nativeOpenCustomerServiceChat(corpId, url);
+    emitter.once('WXOpenCustomerService.Resp', (resp) => {
       if (resp.errCode === 0) {
         resolve(resp);
       } else {

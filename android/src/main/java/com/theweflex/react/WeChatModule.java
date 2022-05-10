@@ -191,6 +191,23 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
     }
 
     @ReactMethod
+    public void openCustomerServiceChat(String corpId, String url, Callback callback) {
+        if (api == null) {
+            callback.invoke(NOT_REGISTERED);
+            return;
+        }
+        // 判断当前版本是否支持拉起客服会话
+        if (api.getWXAppSupportAPI() >= Build.SUPPORT_OPEN_CUSTOMER_SERVICE_CHAT) {
+            WXOpenCustomerServiceChat.Req req = new WXOpenCustomerServiceChat.Req();
+            req.corpId = corpId;							      // 企业ID
+            req.url = url;	// 客服URL
+            callback.invoke(null, api.sendReq(req));
+        } else {
+            callback.invoke(null);
+        }
+    }
+
+    @ReactMethod
     public void sendAuthRequest(String scope, String state, Callback callback) {
         if (api == null) {
             callback.invoke(NOT_REGISTERED);
@@ -988,6 +1005,12 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             ChooseCardFromWXCardPackage.Resp resp = (ChooseCardFromWXCardPackage.Resp) baseResp;
             map.putString("type", "WXChooseInvoiceResp.Resp");
             map.putString("cardItemList", resp.cardItemList);
+        } else if (baseResp instanceof WXOpenCustomerServiceChat.Resp) {
+            WXOpenCustomerServiceChat.Resp resp = (WXOpenCustomerServiceChat.Resp) baseResp;
+            String extraData = resp.extMsg;
+            map.putString("extraData", extraData);
+            map.putString("extMsg", extraData);
+            map.putString("type", "WXOpenCustomerService.Resp");
         }
 
         this.getReactApplicationContext()
