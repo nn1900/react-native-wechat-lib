@@ -29,6 +29,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.tencent.mm.opensdk.constants.Build;
 import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelbiz.ChooseCardFromWXCardPackage;
@@ -46,6 +47,7 @@ import com.tencent.mm.opensdk.modelmsg.WXWebpageObject;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 import com.tencent.mm.opensdk.modelpay.PayResp;
 import com.tencent.mm.opensdk.modelbiz.WXLaunchMiniProgram;
+import com.tencent.mm.opensdk.modelbiz.WXOpenCustomerServiceChat;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
@@ -74,6 +76,8 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
     private final static String NOT_REGISTERED = "registerApp required.";
     private final static String INVOKE_FAILED = "WeChat API invoke returns false.";
     private final static String INVALID_ARGUMENT = "invalid argument.";
+    private final static String NOT_SUPPORTED = "WeChat API not supported.";
+
     // 缩略图大小 kb
     private final static int THUMB_SIZE = 32;
 
@@ -203,7 +207,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             req.url = url;	// 客服URL
             callback.invoke(null, api.sendReq(req));
         } else {
-            callback.invoke(null);
+            callback.invoke(NOT_SUPPORTED);
         }
     }
 
@@ -1007,9 +1011,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             map.putString("cardItemList", resp.cardItemList);
         } else if (baseResp instanceof WXOpenCustomerServiceChat.Resp) {
             WXOpenCustomerServiceChat.Resp resp = (WXOpenCustomerServiceChat.Resp) baseResp;
-            String extraData = resp.extMsg;
-            map.putString("extraData", extraData);
-            map.putString("extMsg", extraData);
             map.putString("type", "WXOpenCustomerService.Resp");
         }
 
